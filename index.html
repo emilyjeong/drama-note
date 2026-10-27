@@ -1,0 +1,775 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111218">
+<title>챔니 마스터리스트 | DRAMA NOTE</title>
+<style>
+:root{
+ --bg:#111218;--panel:#1d1e29;--line:#383648;
+ --lav:#c6a9ef;--text:#f7f4fb;--muted:#aaa5b9;
+ --gold:#f1c37e
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font:14px/1.5 -apple-system,BlinkMacSystemFont,
+ "Apple SD Gothic Neo",sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55}
+.wrap{max-width:1160px;margin:auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;gap:12px;
+ align-items:center;border-bottom:1px solid var(--line);
+ padding-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{background:#352641;color:var(--lav);font-size:26px;
+ border-radius:12px;padding:8px 13px}
+.small{font-size:11px;letter-spacing:2px;color:var(--lav)}
+button{background:#292734;color:var(--text);border:1px solid var(--line);
+ border-radius:10px;padding:10px 12px}
+button.primary{background:var(--lav);color:#241b30;font-weight:800}
+h1{font-size:clamp(28px,5vw,39px);margin:26px 0 6px}
+p{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:25px 0}
+.stat{background:var(--panel);border:1px solid var(--line);
+ border-radius:14px;padding:14px}
+.stat b{display:block;font-size:25px}
+.stat span{font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:18px}
+.tabs button{white-space:nowrap;border-color:transparent;
+ color:var(--muted);background:transparent}
+.tabs button.active{background:#342741;border-color:#624a76;color:var(--lav)}
+.search{display:flex;gap:12px;align-items:center}
+.search input{flex:1;min-width:0;padding:13px;background:var(--panel);
+ color:var(--text);border:1px solid var(--line);border-radius:11px}
+#count{color:var(--muted);white-space:nowrap;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:13px;margin-top:18px}
+@media(min-width:700px){.cards{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);
+ border-radius:16px;overflow:hidden;min-width:0}
+.poster{aspect-ratio:3/4;background:linear-gradient(135deg,#4b3e60,#262737);
+ position:relative;display:grid;place-items:center}
+.poster img{width:100%;height:100%;object-fit:cover;
+ position:absolute;inset:0}
+.poster .fallback{font-size:25px;color:#e9dcfa;text-align:center;padding:10px}
+.fav{position:absolute;right:9px;top:9px;background:#17151bc9;
+ border:1px solid #ffffff52;font-size:24px;padding:4px 10px}
+.fav.on{color:var(--gold)}
+.info{padding:12px}
+.tag{font-size:11px;color:var(--lav)}
+.name{font-size:17px;font-weight:800;margin-top:5px}
+.cn{color:var(--muted);font-size:12px}
+.actors{color:var(--muted);font-size:11px;min-height:32px;margin:9px 0}
+.bottom{display:flex;justify-content:space-between;align-items:center;gap:5px}
+.bottom button{font-size:11px;padding:8px}
+.stars{color:var(--gold);font-size:18px;letter-spacing:-1px}
+.blank{color:#6b6676}
+.study{padding:18px;background:var(--panel);
+ border:1px solid var(--line);border-radius:14px;margin-top:12px}
+.study h2{font-size:23px;margin:6px 0}
+.study dt{color:var(--lav);font-weight:700;margin-top:11px}
+.study dd{margin:3px 0}
+.notice{background:#30283b;border:1px solid #665474;
+ border-radius:12px;padding:12px;margin:15px 0;color:#eadcf9}
+.empty{padding:28px;border:1px dashed var(--line);
+ border-radius:12px;margin-top:18px;color:var(--muted)}
+dialog{background:#20212d;color:var(--text);border:1px solid #5a5068;
+ border-radius:17px;width:min(600px,calc(100% - 20px));
+ max-height:88dvh;overflow:auto;padding:20px}
+dialog::backdrop{background:#000b}
+.field{margin:13px 0}
+.field label{display:block;color:#dfd5e9;font-weight:700;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:11px;
+ background:#11121a;border:1px solid #595063;
+ border-radius:9px;color:var(--text)}
+.field textarea{min-height:75px}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:19px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:450px){.row{grid-template-columns:1fr}}
+#preview{white-space:pre-wrap;background:#14141c;
+ padding:12px;border-radius:9px;max-height:220px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="brand">
+  <span class="logo">影</span>
+  <div>
+   <div class="small">DRAMA NOTE</div>
+   <strong>챔니 마스터리스트</strong>
+  </div>
+ </div>
+ <button id="settingsBtn">⚙ 연결</button>
+</header>
+
+<div class="small" style="margin-top:27px">MY DRAMA DATABASE</div>
+<h1>챔니 마스터리스트</h1>
+<p id="subtitle">Google Sheets 데이터 연결</p>
+
+<div id="stats" class="stats"></div>
+
+<nav id="tabs" class="tabs">
+ <button data-tab="all" class="active">전체</button>
+ <button data-tab="watching">시청 중</button>
+ <button data-tab="done">다 본 거</button>
+ <button data-tab="unseen">안 본 거</button>
+ <button data-tab="fav">★ 별표</button>
+ <button data-tab="study">文 중국어 공부</button>
+</nav>
+
+<div class="search">
+ <input id="search" placeholder="작품 제목 · 배우 검색">
+ <span id="count"></span>
+</div>
+
+<div id="notice" class="notice" hidden></div>
+<main id="content"></main>
+
+<div style="margin-top:25px">
+ <button class="primary" id="bulkBtn">＋ 마크다운 작품 추가 / 수정</button>
+</div>
+</div>
+
+<dialog id="settingsDialog">
+ <h2>Apps Script 연결</h2>
+ <p>처음 한 번만 입력하면 이 기기에 저장됩니다.</p>
+ <div class="field">
+  <label>웹앱 /exec URL</label>
+  <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+ </div>
+ <div class="field">
+  <label>DRAMA_API_KEY 접근키</label>
+  <input id="apiKey" type="password">
+ </div>
+ <div class="actions">
+  <button data-close="settingsDialog">닫기</button>
+  <button class="primary" id="connectBtn">저장하고 연결</button>
+ </div>
+</dialog>
+
+<dialog id="editDialog">
+ <h2 id="editTitle">작품 수정</h2>
+ <div id="editFields"></div>
+ <div class="field">
+  <label>별점</label>
+  <select id="rating"></select>
+ </div>
+ <div class="field">
+  <label><input id="favorite" type="checkbox"> ★ 별표</label>
+ </div>
+ <div class="field">
+  <label>나의 리뷰</label>
+  <textarea id="review" rows="4"></textarea>
+ </div>
+ <div class="actions">
+  <button data-close="editDialog">취소</button>
+  <button class="primary" id="saveBtn">저장</button>
+ </div>
+</dialog>
+
+<dialog id="bulkDialog">
+ <h2>마크다운 일괄 등록</h2>
+ <p>작품 제목과 변경할 항목만 입력하세요.</p>
+ <div class="field">
+  <textarea id="markdown" rows="10"
+   placeholder="## 투투장부주&#10;- 별점: 5&#10;- 나의 리뷰: 너무 좋았어요"></textarea>
+ </div>
+ <button id="previewBtn">미리보기</button>
+ <div id="preview" style="display:none"></div>
+ <div class="actions">
+  <button data-close="bulkDialog">취소</button>
+  <button class="primary" id="applyBtn" disabled>저장</button>
+ </div>
+</dialog>
+
+<script>
+'use strict';
+
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;',
+ '"':'&quot;',"'":'&#39;'
+}[c]));
+
+const FIELD={
+ ko:'한국어 제목',
+ cn:'중국어 원제',
+ year:'방영연도',
+ male:'남자 주연',
+ female:'여자 주연',
+ category:'대분류',
+ genre:'세부장르',
+ story:'줄거리',
+ ott:'OTT',
+ status:'시청상태',
+ rating:'별점',
+ fav:'별표',
+ review:'나의 리뷰',
+ memo:'관심 메모',
+ poster:'포스터 URL'
+};
+
+let config={url:'',key:''};
+try{
+ config={
+  ...config,
+  ...JSON.parse(localStorage.getItem('dramaNoteConfig')||'{}')
+ };
+}catch(e){}
+
+let dramas=[];
+let studies=[];
+let tab='all';
+let search='';
+let editing=null;
+let pending=[];
+
+const norm=s=>String(s||'').replace(/\s/g,'').toLowerCase();
+const idOf=d=>d.DRAMA_ID;
+const favOf=d=>d['별표']==='Y';
+const ratingOf=d=>Number(d['별점'])||0;
+
+function message(text){
+ $('notice').hidden=false;
+ $('notice').textContent=text;
+}
+
+function jsonp(action){
+ return new Promise((resolve,reject)=>{
+  if(!config.url||!config.key){
+   reject(new Error('먼저 Apps Script를 연결해주세요.'));
+   return;
+  }
+  const cb='drama_cb_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  const script=document.createElement('script');
+  const timeout=setTimeout(()=>{
+   cleanup();
+   reject(new Error('서버 응답 시간 초과'));
+  },15000);
+
+  function cleanup(){
+   clearTimeout(timeout);
+   delete window[cb];
+   script.remove();
+  }
+
+  window[cb]=data=>{
+   cleanup();
+   if(data.ok)resolve(data);
+   else reject(new Error(data.error||'조회 실패'));
+  };
+
+  script.onerror=()=>{
+   cleanup();
+   reject(new Error('Apps Script 호출에 실패했습니다.'));
+  };
+
+  const url=new URL(config.url);
+  url.searchParams.set('action',action);
+  url.searchParams.set('key',config.key);
+  url.searchParams.set('callback',cb);
+  script.src=url.toString();
+  document.body.appendChild(script);
+ });
+}
+
+async function load(){
+ try{
+  message('데이터 불러오는 중...');
+  const data=await jsonp('list');
+  dramas=data.dramas||[];
+  studies=data.study||[];
+  $('notice').hidden=true;
+  render();
+ }catch(e){
+  message('연결 오류: '+e.message);
+ }
+}
+
+// 브라우저 CORS 제한으로 POST 응답 본문은 읽지 못합니다.
+// 요청 전송 후 목록을 다시 조회해 저장 결과를 확인합니다.
+async function post(action,params){
+ const payload={action,key:config.key,...params};
+ const body=new URLSearchParams({
+  payload:JSON.stringify(payload)
+ });
+
+ await fetch(config.url,{
+  method:'POST',
+  mode:'no-cors',
+  body
+ });
+}
+
+async function verify(predicate){
+ // Apps Script 저장 반영 시간을 고려한 재조회
+ for(let i=0;i<5;i++){
+  await new Promise(r=>setTimeout(r,1000));
+  const data=await jsonp('list');
+  dramas=data.dramas||[];
+  studies=data.study||[];
+  if(predicate(dramas)){
+   render();
+   return true;
+  }
+ }
+ render();
+ return false;
+}
+
+function stars(n){
+ let html='';
+ for(let i=1;i<=5;i++){
+  const fill=Math.max(0,Math.min(1,n-i+1));
+  html+=`<span style="position:relative;color:#65616e">★
+   <span style="position:absolute;left:0;top:0;
+   width:${fill*100}%;overflow:hidden;color:#f1c37e">★</span>
+   </span>`;
+ }
+ return `<span class="stars">${html}</span>`;
+}
+
+function status(d){
+ return d['시청상태']||'안본거';
+}
+
+function stats(){
+ const groups=[
+  ['전체',dramas.length],
+  ['시청 중',dramas.filter(d=>status(d)==='시청중').length],
+  ['다 본 거',dramas.filter(d=>status(d)==='다본거').length],
+  ['안 본 거',dramas.filter(d=>status(d)==='안본거').length]
+ ];
+ $('stats').innerHTML=groups.map(([a,b])=>
+  `<div class="stat"><b>${b}</b><span>${a}</span></div>`
+ ).join('');
+}
+
+function card(d){
+ const img=/^https:\/\//i.test(d['포스터 URL']||'')
+   ?`<img src="${esc(d['포스터 URL'])}" loading="lazy"
+     alt="${esc(d['한국어 제목'])}"
+     onerror="this.remove()">`
+   :'';
+
+ return `<article class="card">
+  <div class="poster">
+   <div class="fallback">${esc(d['중국어 원제'])}</div>
+   ${img}
+   <button class="fav ${favOf(d)?'on':''}"
+    data-fav="${esc(idOf(d))}">${favOf(d)?'★':'☆'}</button>
+  </div>
+  <div class="info">
+   <div class="tag">${esc(status(d))}</div>
+   <div class="name">${esc(d['한국어 제목'])}</div>
+   <div class="cn">${esc(d['중국어 원제'])}</div>
+   <div class="actors">${esc([
+    d['남자 주연'],d['여자 주연']
+   ].filter(Boolean).join(' · '))}</div>
+   <div class="bottom">
+    <div>${ratingOf(d)?stars(ratingOf(d)):'<span class="blank">미평가</span>'}
+     <small>${d['별점']||''}</small></div>
+    <button data-edit="${esc(idOf(d))}">상세 / 수정</button>
+   </div>
+  </div>
+ </article>`;
+}
+
+function renderStudy(){
+ const q=norm(search);
+ const list=studies.filter(d=>
+  !q||norm([
+   d['한국어 제목'],
+   d['중국어 원제'],
+   d['제목 병음']
+  ].join(' ')).includes(q)
+ );
+ $('count').textContent=list.length+'편';
+
+ $('content').innerHTML=list.length
+  ?list.map(d=>`<article class="study">
+    <div class="small">${esc(d['한국어 제목'])}</div>
+    <h2>${esc(d['중국어 원제'])}</h2>
+    <div style="color:var(--lav)">${esc(d['제목 병음'])}</div>
+    <dl>
+     <dt>직역</dt><dd>${esc(d['직역'])}</dd>
+     <dt>자연스러운 뜻</dt><dd>${esc(d['자연스러운 뜻'])}</dd>
+     <dt>단어 풀이</dt><dd>${esc(d['단어 풀이'])}</dd>
+     <dt>문법·표현 포인트</dt>
+     <dd>${esc(d['문법·표현 포인트'])}</dd>
+     <dt>제목과 줄거리의 연결</dt>
+     <dd>${esc(d['제목과 줄거리의 연결'])}</dd>
+     <dt>활용 예문</dt>
+     <dd>${esc(d['활용 예문 (중국어)'])}</dd>
+     <dd style="color:var(--lav)">${esc(d['예문 병음'])}</dd>
+     <dd>${esc(d['예문 한국어 해석'])}</dd>
+    </dl>
+   </article>`).join('')
+  :'<div class="empty">공부할 작품이 없습니다.</div>';
+}
+
+function render(){
+ stats();
+ $('subtitle').textContent=
+  `DRAMA NOTE · ${dramas.length}편 연결됨`;
+
+ document.querySelectorAll('[data-tab]').forEach(b=>{
+  b.classList.toggle('active',b.dataset.tab===tab);
+ });
+
+ if(tab==='study'){
+  $('search').placeholder='한국어 · 중국어 제목 검색';
+  renderStudy();
+  return;
+ }
+
+ $('search').placeholder='작품 제목 · 배우 검색';
+
+ let list=dramas.filter(d=>{
+  if(tab==='watching')return status(d)==='시청중';
+  if(tab==='done')return status(d)==='다본거';
+  if(tab==='unseen')return status(d)==='안본거';
+  if(tab==='fav')return favOf(d);
+  return true;
+ });
+
+ if(search){
+  const q=norm(search);
+  list=list.filter(d=>norm([
+   d['한국어 제목'],d['중국어 원제'],
+   d['남자 주연'],d['여자 주연'],
+   d['세부장르']
+  ].join(' ')).includes(q));
+ }
+
+ $('count').textContent=list.length+'편';
+ $('content').innerHTML=list.length
+  ?`<div class="cards">${list.map(card).join('')}</div>`
+  :'<div class="empty">검색 결과가 없습니다.</div>';
+}
+
+function openEdit(id){
+ const d=dramas.find(x=>idOf(x)===id);
+ if(!d)return;
+ editing=d;
+ $('editTitle').textContent=d['한국어 제목']+' · 수정';
+
+ const fields=[
+  ['ko','한국어 제목'],['cn','중국어 원제'],
+  ['year','방영연도'],['male','남자 주연'],
+  ['female','여자 주연'],['category','대분류'],
+  ['genre','세부장르'],['story','줄거리'],
+  ['ott','OTT'],['poster','포스터 URL'],
+  ['status','시청상태']
+ ];
+
+ $('editFields').innerHTML=fields.map(([key,label])=>{
+  const value=esc(d[label]||'');
+  if(key==='status'){
+   return `<div class="field">
+    <label>시청 상태</label>
+    <select data-field="${label}">
+     ${['안본거','시청중','다본거'].map(s=>
+      `<option value="${s}" ${d[label]===s?'selected':''}>${s}</option>`
+     ).join('')}
+    </select></div>`;
+  }
+  if(key==='story'){
+   return `<div class="field"><label>${label}</label>
+    <textarea data-field="${label}">${value}</textarea></div>`;
+  }
+  return `<div class="field"><label>${label}</label>
+   <input data-field="${label}" value="${value}"></div>`;
+ }).join('');
+
+ $('rating').value=d['별점']||'';
+ $('favorite').checked=favOf(d);
+ $('review').value=d['나의 리뷰']||'';
+ $('editDialog').showModal();
+}
+
+async function saveEdit(){
+ if(!editing)return;
+ const id=idOf(editing);
+ const fields={};
+
+ document.querySelectorAll('#editFields [data-field]')
+ .forEach(el=>{
+  const key=el.dataset.field;
+  if(el.value!==String(editing[key]||'')){
+   fields[key]=el.value;
+  }
+ });
+
+ const rating=$('rating').value;
+ if(rating!==String(editing['별점']||'')){
+  fields['별점']=rating;
+ }
+
+ const fav=$('favorite').checked?'Y':'N';
+ if(fav!==editing['별표'])fields['별표']=fav;
+
+ if($('review').value!==String(editing['나의 리뷰']||'')){
+  fields['나의 리뷰']=$('review').value;
+ }
+
+ if(!Object.keys(fields).length){
+  $('editDialog').close();
+  return;
+ }
+
+ $('saveBtn').disabled=true;
+ try{
+  await post('update',{id,fields});
+
+  const ok=await verify(list=>{
+   const d=list.find(x=>idOf(x)===id);
+   return d&&Object.entries(fields).every(([k,v])=>
+    String(d[k]||'')===String(v)
+   );
+  });
+
+  if(!ok)throw new Error('저장 결과를 확인하지 못했습니다.');
+
+  $('editDialog').close();
+  message('구글 시트에 저장 완료!');
+ }catch(e){
+  message('저장 확인 오류: '+e.message);
+ }finally{
+  $('saveBtn').disabled=false;
+ }
+}
+
+async function toggleFav(id){
+ const d=dramas.find(x=>idOf(x)===id);
+ if(!d)return;
+ const next=favOf(d)?'N':'Y';
+ try{
+  await post('update',{
+   id,fields:{'별표':next}
+  });
+  const ok=await verify(list=>
+   list.some(x=>idOf(x)===id&&x['별표']===next)
+  );
+  if(!ok)throw new Error('별표 변경을 확인하지 못했습니다.');
+ }catch(e){
+  message(e.message);
+ }
+}
+
+const aliases={
+ '원제':'중국어 원제',
+ '중국어 원제':'중국어 원제',
+ '연도':'방영연도',
+ '남주':'남자 주연',
+ '여주':'여자 주연',
+ '장르':'세부장르',
+ '대분류':'대분류',
+ '줄거리':'줄거리',
+ 'OTT':'OTT',
+ '상태':'시청상태',
+ '별점':'별점',
+ '별표':'별표',
+ '리뷰':'나의 리뷰',
+ '나의 리뷰':'나의 리뷰',
+ '메모':'관심 메모',
+ '포스터 URL':'포스터 URL'
+};
+
+function parseMarkdown(text){
+ const blocks=text.split(/(?=^##\s+)/m).filter(x=>x.trim());
+
+ return blocks.map(block=>{
+  const lines=block.trim().split(/\r?\n/);
+  if(!/^##\s+/.test(lines[0])){
+   throw new Error('## 작품명 형식으로 입력해주세요.');
+  }
+
+  const title=lines[0].replace(/^##\s+/,'').trim();
+  const fields={};
+
+  lines.slice(1).forEach(line=>{
+   const m=line.match(/^\s*-\s*([^:：]+)[:：]\s*(.*)$/);
+   if(!m)return;
+   const key=aliases[m[1].trim()];
+   if(key&&m[2].trim()){
+    fields[key]=m[2].trim()==='[삭제]'?'':m[2].trim();
+   }
+  });
+
+  return {title,fields};
+ });
+}
+
+function planImport(){
+ const blocks=parseMarkdown($('markdown').value);
+
+ if(!blocks.length||blocks.length>30)
+  throw new Error('1~30편을 입력해주세요.');
+
+ pending=blocks.map(b=>{
+  const existing=dramas.find(d=>
+   norm(d['한국어 제목'])===norm(b.title)
+  );
+
+  if(existing){
+   const changes={};
+   Object.entries(b.fields).forEach(([k,v])=>{
+    if(String(existing[k]||'')!==v)changes[k]=v;
+   });
+   return {
+    action:'update',
+    id:idOf(existing),
+    title:b.title,
+    fields:changes
+   };
+  }
+
+  return {
+   action:'add',
+   title:b.title,
+   fields:{
+    '한국어 제목':b.title,
+    '시청상태':'안본거',
+    '별표':'N',
+    ...b.fields
+   }
+  };
+ });
+
+ $('preview').textContent=pending.map(x=>
+  `[${x.action==='add'?'신규':'수정'}] ${x.title}\n`+
+  Object.entries(x.fields).map(([k,v])=>
+   `  ${k}: ${v}`
+  ).join('\n')
+ ).join('\n\n');
+
+ $('preview').style.display='block';
+ $('applyBtn').disabled=!pending.length;
+}
+
+async function applyImport(){
+ $('applyBtn').disabled=true;
+
+ try{
+  for(const item of pending){
+   if(item.action==='update'&&!Object.keys(item.fields).length)
+    continue;
+
+   await post(item.action,item.action==='add'
+    ?{fields:item.fields}
+    :{id:item.id,fields:item.fields});
+
+   const ok=await verify(list=>{
+    const d=item.action==='add'
+     ?list.find(x=>norm(x['한국어 제목'])===norm(item.title))
+     :list.find(x=>idOf(x)===item.id);
+
+    return d&&Object.entries(item.fields).every(([k,v])=>
+     String(d[k]||'')===String(v)
+    );
+   });
+
+   if(!ok)throw new Error(item.title+' 저장 여부 확인 실패');
+  }
+
+  $('bulkDialog').close();
+  $('markdown').value='';
+  pending=[];
+  message('마크다운 변경 내용 저장 완료!');
+ }catch(e){
+  message('저장 중단: '+e.message+
+   ' 이미 저장된 작품이 있을 수 있으니 시트를 확인해주세요.');
+ }finally{
+  $('applyBtn').disabled=false;
+ }
+}
+
+// 이벤트 연결
+$('settingsBtn').onclick=()=>{
+ $('apiUrl').value=config.url;
+ $('apiKey').value=config.key;
+ $('settingsDialog').showModal();
+};
+
+$('connectBtn').onclick=()=>{
+ const url=$('apiUrl').value.trim();
+ const key=$('apiKey').value.trim();
+
+ if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){
+  message('Apps Script /exec 주소를 확인해주세요.');
+  return;
+ }
+
+ if(!key){
+  message('접근키를 입력해주세요.');
+  return;
+ }
+
+ config={url,key};
+ localStorage.setItem('dramaNoteConfig',JSON.stringify(config));
+ $('settingsDialog').close();
+ load();
+};
+
+document.querySelectorAll('[data-close]').forEach(b=>{
+ b.onclick=()=>$(b.dataset.close).close();
+});
+
+$('tabs').onclick=e=>{
+ const btn=e.target.closest('[data-tab]');
+ if(!btn)return;
+ tab=btn.dataset.tab;
+ search='';
+ $('search').value='';
+ render();
+};
+
+$('search').oninput=e=>{
+ search=e.target.value;
+ render();
+};
+
+$('content').onclick=e=>{
+ const f=e.target.closest('[data-fav]');
+ const d=e.target.closest('[data-edit]');
+ if(f)return toggleFav(f.dataset.fav);
+ if(d)return openEdit(d.dataset.edit);
+};
+
+$('saveBtn').onclick=saveEdit;
+$('bulkBtn').onclick=()=>{
+ pending=[];
+ $('preview').style.display='none';
+ $('applyBtn').disabled=true;
+ $('bulkDialog').showModal();
+};
+$('previewBtn').onclick=()=>{
+ try{
+  planImport();
+ }catch(e){
+  message(e.message);
+ }
+};
+$('applyBtn').onclick=applyImport;
+
+$('rating').innerHTML='<option value="">미평가</option>'+
+ Array.from({length:10},(_,i)=>{
+  const n=(i+1)/2;
+  return `<option value="${n}">${n.toFixed(1)}점</option>`;
+ }).join('');
+
+render();
+
+if(config.url&&config.key){
+ load();
+}else{
+ message('⚙ 연결 버튼에서 Apps Script 주소와 접근키를 입력해주세요.');
+}
+</script>
+</body>
+</html>
