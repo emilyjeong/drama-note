@@ -32,9 +32,16 @@ button{background:#292734;color:var(--text);border:1px solid var(--line);
 button.primary{background:var(--lav);color:#241b30;font-weight:800}
 h1{font-size:clamp(28px,5vw,39px);margin:26px 0 6px}
 p{color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:25px 0}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;margin:25px 0
+}
+@media(min-width:700px){
+ .stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
 .stat{background:var(--panel);border:1px solid var(--line);
- border-radius:14px;padding:14px}
+ border-radius:14px;padding:14px;min-width:0}
 .stat b{display:block;font-size:25px}
 .stat span{font-size:11px;color:var(--muted)}
 .tabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:18px}
@@ -117,6 +124,7 @@ dialog::backdrop{background:#000b}
  <button data-tab="watching">시청 중</button>
  <button data-tab="done">다 본 거</button>
  <button data-tab="unseen">안 본 거</button>
+ <button data-tab="dropped">탈주</button>
  <button data-tab="fav">★ 별표</button>
  <button data-tab="study">文 중국어 공부</button>
 </nav>
@@ -342,7 +350,8 @@ function stats(){
   ['전체',dramas.length],
   ['시청 중',dramas.filter(d=>status(d)==='시청중').length],
   ['다 본 거',dramas.filter(d=>status(d)==='다본거').length],
-  ['안 본 거',dramas.filter(d=>status(d)==='안본거').length]
+  ['안 본 거',dramas.filter(d=>status(d)==='안본거').length],
+  ['탈주',dramas.filter(d=>status(d)==='탈주').length]
  ];
  $('stats').innerHTML=groups.map(([a,b])=>
   `<div class="stat"><b>${b}</b><span>${a}</span></div>`
@@ -433,6 +442,7 @@ function render(){
   if(tab==='watching')return status(d)==='시청중';
   if(tab==='done')return status(d)==='다본거';
   if(tab==='unseen')return status(d)==='안본거';
+  if(tab==='dropped')return status(d)==='탈주';
   if(tab==='fav')return favOf(d);
   return true;
  });
@@ -473,7 +483,7 @@ function openEdit(id){
    return `<div class="field">
     <label>시청 상태</label>
     <select data-field="${label}">
-     ${['안본거','시청중','다본거'].map(s=>
+     ${['안본거','시청중','다본거','탈주'].map(s=>
       `<option value="${s}" ${d[label]===s?'selected':''}>${s}</option>`
      ).join('')}
     </select></div>`;
